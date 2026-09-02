@@ -43,9 +43,12 @@ function App() {
       const msg = e.data;
 
       if (msg.type === 'progress') {
-        // Also visible in the browser DevTools console (a worker can't write to the OS terminal).
-        console.log(`[beamSimulation] row ${msg.row}/${msg.total}`);
         setStatus(`Running simulation... row ${msg.row}/${msg.total} (${((msg.row / msg.total) * 100).toFixed(0)}%)`);
+        return;
+      }
+
+      if (msg.type === 'status') {
+        setStatus(msg.message);
         return;
       }
 
@@ -55,21 +58,29 @@ function App() {
         return;
       }
 
-      setRunning(false);
       const { data, width, height } = msg;
 
-      // Normalize so max is 1.0, matching beamApp.m
-      let max = 0;
-      for (let i = 0; i < data.length; i++) if (data[i] > max) max = data[i];
-      if (max === 0) {
-        setStatus('Simulation result is all zeros; cannot normalize.');
-        return;
-      }
-      const normalized = new Float64Array(data.length);
-      for (let i = 0; i < data.length; i++) normalized[i] = data[i] / max;
+      // Defer the remaining work one tick at a time so each status update actually paints
+      // before the next (synchronous, CPU-bound) step runs.
+      setStatus('Result received. Normalizing intensity data...');
+      setTimeout(() => {
+        let max = 0;
+        for (let i = 0; i < data.length; i++) if (data[i] > max) max = data[i];
+        if (max === 0) {
+          setRunning(false);
+          setStatus('Simulation result is all zeros; cannot normalize.');
+          return;
+        }
+        const normalized = new Float64Array(data.length);
+        for (let i = 0; i < data.length; i++) normalized[i] = data[i] / max;
 
-      setImage({ data: normalized, width, height });
-      setStatus('Simulation complete.');
+        setStatus('Rendering image...');
+        setTimeout(() => {
+          setImage({ data: normalized, width, height });
+          setRunning(false);
+          setStatus('Simulation complete.');
+        }, 0);
+      }, 0);
     };
   }, [worker]);
 

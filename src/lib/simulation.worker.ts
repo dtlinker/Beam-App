@@ -17,6 +17,11 @@ export interface ProgressMessage {
   total: number;
 }
 
+export interface StatusMessage {
+  type: 'status';
+  message: string;
+}
+
 export interface ResultMessage {
   type: 'result';
   data: Float64Array;
@@ -29,28 +34,23 @@ export interface ErrorMessage {
   error: string;
 }
 
-export type WorkerMessage = ProgressMessage | ResultMessage | ErrorMessage;
+export type WorkerMessage = ProgressMessage | StatusMessage | ResultMessage | ErrorMessage;
 
 self.onmessage = (e: MessageEvent<SimulationParams>) => {
   const { freq, depth, wide, trans, angl, focus, emitters } = e.data;
   const startedAt = performance.now();
 
   try {
-    console.log('[beamSimulation] starting', e.data);
-
-    let lastLoggedAt = startedAt;
     const { rows, width, height } = beamSimulation(freq, depth, wide, trans, angl, focus, emitters, (row, total) => {
-      const now = performance.now();
-      // Log every row, but throttle console output to ~4x/sec so it doesn't flood devtools.
-      if (row === total || now - lastLoggedAt > 250) {
-        lastLoggedAt = now;
-        console.log(`[beamSimulation] row ${row}/${total} (${((row / total) * 100).toFixed(1)}%)`);
-      }
       const progress: ProgressMessage = { type: 'progress', row, total };
       (self as unknown as Worker).postMessage(progress);
     });
 
-    console.log(`[beamSimulation] done in ${(performance.now() - startedAt).toFixed(0)}ms, ${width}x${height}`);
+    const computeMs = performance.now() - startedAt;
+    (self as unknown as Worker).postMessage({
+      type: 'status',
+      message: `Compute done in ${computeMs.toFixed(0)}ms. Assembling ${width}x${height} result matrix...`,
+    } satisfies StatusMessage);
 
     // Flatten rows into a single transferable buffer
     const data = new Float64Array(width * height);
@@ -58,10 +58,14 @@ self.onmessage = (e: MessageEvent<SimulationParams>) => {
       data.set(rows[r], r * width);
     }
 
+    (self as unknown as Worker).postMessage({
+      type: 'status',
+      message: 'Transferring result to browser...',
+    } satisfies StatusMessage);
+
     const result: ResultMessage = { type: 'result', data, width, height };
     (self as unknown as Worker).postMessage(result, [data.buffer]);
   } catch (err) {
-    console.error('[beamSimulation] failed', err);
     const message: ErrorMessage = { type: 'error', error: err instanceof Error ? err.message : String(err) };
     (self as unknown as Worker).postMessage(message);
   }
