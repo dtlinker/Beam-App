@@ -1,32 +1,60 @@
-# React + TypeScript + Vite
+# Beam Simulation Web App
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+A browser-based port of the original MATLAB `beamApp.m` ultrasound beam
+simulator. It computes the transmit intensity field of a linear-array
+transducer (frequency, depth/width of field, transducer size, steering
+angle, focus, and element count) and renders it as a grayscale image,
+matching the original app's `imshow`-based display.
 
-Currently, two official plugins are available:
+## What it does
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Ports `beamprofile.m` and `beamsimulation.m` line-for-line into
+  TypeScript ([src/lib/beamProfile.ts](src/lib/beamProfile.ts),
+  [src/lib/beamSimulation.ts](src/lib/beamSimulation.ts)), including the
+  spaced-transducer (`[count, gapPercent]`) emitter option and MATLAB's
+  colon-range (`start:step:stop`) semantics.
+- Runs the simulation in a Web Worker
+  ([src/lib/simulation.worker.ts](src/lib/simulation.worker.ts)) so the UI
+  stays responsive, and streams back progress/status updates while it runs.
+- Renders the normalized intensity matrix to a `<canvas>` as a grayscale
+  image ([src/components/BeamCanvas.svelte](src/components/BeamCanvas.svelte)),
+  equivalent to MATLAB's `imshow(I)` with `I` scaled so `max(I(:)) == 1`.
 
-## React Compiler
+## Tools used
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- [Svelte 5](https://svelte.dev/) (runes: `$state`, `$props`, `$effect`) for the UI
+- [TypeScript](https://www.typescriptlang.org/) for the simulation math and components
+- [Vite](https://vite.dev/) as the dev server and bundler (via
+  `@sveltejs/vite-plugin-svelte`)
+- Native Web Worker + `<canvas>` APIs — no numeric/plotting libraries are
+  needed; the simulation math is simple enough for plain typed-array loops
+- [oxlint](https://oxc.rs/) for linting
 
-## Expanding the Oxlint configuration
+No server/backend is required — it's a fully static, client-side app.
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+## Project structure
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```
+src/
+  App.svelte                 # form inputs, run button, status text
+  components/
+    BeamCanvas.svelte        # canvas renderer (imshow equivalent)
+  lib/
+    beamProfile.ts           # port of beamprofile.m
+    beamSimulation.ts        # port of beamsimulation.m
+    simulation.worker.ts     # Web Worker wrapper with progress/status messages
+    mathUtils.ts             # MATLAB colon-range helper
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## How to build and run
+
+Requires Node.js (with npm).
+
+```sh
+npm install       # install dependencies
+npm run dev       # start the dev server with hot reload
+npm run build     # type-check (tsc -b) and produce a production build in dist/
+npm run preview   # preview the production build locally
+npm run lint      # run oxlint
+```
+
