@@ -1,6 +1,7 @@
 <script lang="ts">
   import './App.css';
   import BeamCanvas from './components/BeamCanvas.svelte';
+  import ProfileGraph from './components/ProfileGraph.svelte';
   import type { SimulationParams, WorkerMessage } from './lib/simulation.worker';
 
   interface FormState {
@@ -29,7 +30,33 @@
 
   let status = $state('');
   let running = $state(false);
-  let image = $state<{ data: Float64Array; width: number; height: number } | null>(null);
+  let image = $state<{ data: Float64Array; width: number; height: number; depthCm: number } | null>(null);
+
+  let showBeamProfile = $state(false);
+  let profileDistance = $state(form.depth / 2);
+
+  // Row index (in the image's data grid) that corresponds to profileDistance, or null if unavailable.
+  let profileRow = $derived.by(() => {
+    if (!showBeamProfile || !image) return null;
+    const fraction = 1 - profileDistance / image.depthCm;
+    const row = Math.round(fraction * image.height);
+    return Math.max(0, Math.min(image.height - 1, row));
+  });
+
+  let profileValues = $derived.by(() => {
+    if (profileRow === null || !image) return null;
+    return image.data.slice(profileRow * image.width, (profileRow + 1) * image.width);
+  });
+
+  function toggleBeamProfile() {
+    showBeamProfile = !showBeamProfile;
+    if (showBeamProfile) profileDistance = form.depth / 2;
+  }
+
+  // Keep the distance within [0, depth] as the depth field changes.
+  $effect(() => {
+    if (profileDistance > form.depth) profileDistance = form.depth;
+  });
 
   const worker = new Worker(new URL('./lib/simulation.worker.ts', import.meta.url), { type: 'module' });
 
@@ -70,12 +97,14 @@
 
       status = 'Rendering image...';
       setTimeout(() => {
-        image = { data: normalized, width, height };
+        image = { data: normalized, width, height, depthCm: runDepth };
         running = false;
         status = 'Simulation complete.';
       }, 0);
     }, 0);
   };
+
+  let runDepth = $state(0);
 
   function runSimulation() {
     const { freq, depth, wide, trans, angl, focus, emitters, gapPercent } = form;
@@ -95,6 +124,7 @@
 
     running = true;
     status = 'Running simulation...';
+    runDepth = depth;
 
     const params: SimulationParams = {
       freq,
@@ -113,42 +143,63 @@
   <aside class="beam-form">
     <h1>Beam Simulation</h1>
 
-    <label>
-      Frequency (MHz)
-      <input type="number" bind:value={form.freq} />
-    </label>
-    <label>
-      Depth (cm)
-      <input type="number" bind:value={form.depth} />
-    </label>
-    <label>
-      Width (cm)
-      <input type="number" bind:value={form.wide} />
-    </label>
-    <label>
-      Transducer (cm)
-      <input type="number" bind:value={form.trans} />
-    </label>
-    <label>
-      Angle (deg)
-      <input type="number" bind:value={form.angl} />
-    </label>
-    <label>
-      Focus (cm)
-      <input type="number" bind:value={form.focus} />
-    </label>
-    <label>
-      Emitters (count)
-      <input type="number" min="1" step="1" bind:value={form.emitters} />
-    </label>
-    <label>
-      Element Gap
-      <select bind:value={form.gapPercent}>
-        {#each gapPercentOptions as option}
-          <option value={option}>{option === 0 ? 'None' : `${(option * 100).toFixed(0)}%`}</option>
-        {/each}
-      </select>
-    </label>
+    <fieldset class="form-group">
+      <legend>Simulation</legend>
+      <label>
+        Depth (cm)
+        <input type="number" min="1" max="25" step="1" bind:value={form.depth} />
+      </label>
+      <label>
+        Width (cm)
+        <input type="number" min="2" max="16" step="0.5" bind:value={form.wide} />
+      </label>
+    </fieldset>
+
+    <fieldset class="form-group">
+      <legend>Transducer</legend>
+      <label>
+        Frequency (MHz)
+        <input type="number" min="1" max="10" step="0.5" bind:value={form.freq} />
+      </label>
+      <label>
+        Width (cm)
+        <input type="number" min="0.2" max="5" step="0.1" bind:value={form.trans} />
+      </label>
+      <label>
+        Focus (cm)
+        <input type="number" min="0.2" max="15" step="0.1" bind:value={form.focus} />
+      </label>
+      <label>
+        Angle (deg)
+        <input type="number" min="-45" max="45" step="1" bind:value={form.angl} />
+      </label>
+      <label>
+        Emitters (count)
+        <input type="number" min="32" max="256" step="1" bind:value={form.emitters} />
+      </label>
+      <label>
+        Element Gap
+        <select bind:value={form.gapPercent}>
+          {#each gapPercentOptions as option}
+            <option value={option}>{option === 0 ? 'None' : `${(option * 100).toFixed(0)}%`}</option>
+          {/each}
+        </select>
+      </label>
+    </fieldset>
+
+    <fieldset class="form-group">
+      <legend>Display profile</legend>
+      <label class="checkbox-label">
+        <input type="checkbox" checked={showBeamProfile} onchange={toggleBeamProfile} />
+        Beam profile
+      </label>
+      {#if showBeamProfile}
+        <label>
+          Distance (cm)
+          <input type="number" min="0.1" max={form.depth} step="0.1" bind:value={profileDistance} />
+        </label>
+      {/if}
+    </fieldset>
 
     <button type="button" onclick={runSimulation} disabled={running}>
       {running ? 'Running…' : 'Run Simulation'}
@@ -159,7 +210,14 @@
 
   <main class="beam-display">
     {#if image}
-      <BeamCanvas data={image.data} width={image.width} height={image.height} />
+      <div class="beam-display-stack">
+        <div class="beam-canvas-wrap">
+          <BeamCanvas data={image.data} width={image.width} height={image.height} highlightRow={profileRow} />
+        </div>
+        {#if showBeamProfile && profileValues}
+          <ProfileGraph values={profileValues} />
+        {/if}
+      </div>
     {:else}
       <p class="placeholder">Run a simulation to see the beam profile.</p>
     {/if}

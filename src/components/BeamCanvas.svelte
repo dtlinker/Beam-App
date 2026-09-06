@@ -3,9 +3,11 @@
     data: Float64Array | null;
     width: number;
     height: number;
+    /** Row index (0-based, in data-grid coordinates) to draw a red highlight line across, or null to hide it. */
+    highlightRow?: number | null;
   }
 
-  let { data, width, height }: Props = $props();
+  let { data, width, height, highlightRow = null }: Props = $props();
   let canvas: HTMLCanvasElement;
 
   // Renders a normalized intensity matrix as a grayscale image, equivalent to
@@ -28,6 +30,11 @@
       imageData.data[o + 3] = 255;
     }
     ctx.putImageData(imageData, 0, 0);
+
+    if (highlightRow !== null && highlightRow >= 0 && highlightRow < height) {
+      ctx.fillStyle = 'red';
+      ctx.fillRect(0, highlightRow, width, 1);
+    }
   });
 </script>
 
