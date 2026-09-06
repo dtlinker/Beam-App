@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Beam Simulation — Instructions</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 24px 20px 60px;
+        line-height: 1.6;
+      }
+      h1 {
+        font-size: 26px;
+      }
+      h2 {
+        font-size: 20px;
+        margin-top: 2em;
+        border-bottom: 1px solid #ccc;
+        padding-bottom: 4px;
+      }
+      dt {
+        font-weight: 600;
+        margin-top: 12px;
+      }
+      dd {
+        margin: 2px 0 0;
+      }
+      .back-link {
+        display: inline-block;
+        margin-top: 2em;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Beam Simulation — Instructions</h1>
+
+    <h2>Background</h2>
+    <p>
+      This tool simulates the acoustic beam produced by an ultrasound-style phased-array transducer. Sound
+      waves emitted from individual elements combine constructively and destructively as they travel through
+      the field, producing a pattern of peaks and nulls in intensity. The simulation computes this interference
+      pattern across a two-dimensional field (depth vs. lateral width) and displays it as a grayscale image,
+      where brighter pixels indicate higher beam power.
+    </p>
+    <p>
+      Optionally, the transducer elements can be steered (angled), focused to a point, or spaced apart with
+      gaps to model more realistic array configurations.
+    </p>
+
+    <h2>Usage</h2>
+    <p>
+      Fill in the values in the <strong>Simulation</strong>, <strong>Transducer</strong>, and
+      <strong>Display profile</strong> groups, then click <strong>Run Simulation</strong>. The status line
+      shows progress while the field is computed. When finished, the beam power image is displayed on the
+      right, normalized so the brightest point in the field is white.
+    </p>
+    <p>
+      Check <strong>Beam profile</strong> to overlay a red line at a chosen depth and show a line graph,
+      titled "Beam amplitude profile," of the beam amplitude across the width of the field at that depth.
+      Changing the <strong>Distance</strong> value moves the line and updates the graph; unchecking the box
+      hides both.
+    </p>
+
+    <h2>Variables</h2>
+    <dl>
+      <dt>Depth (cm) — Simulation</dt>
+      <dd>Total distance from the transducer to the far edge of the simulated field.</dd>
+
+      <dt>Width (cm) — Simulation</dt>
+      <dd>Total lateral width of the simulated field, centered on the transducer.</dd>
+
+      <dt>Frequency (MHz) — Transducer</dt>
+      <dd>Operating frequency of the transducer. Higher frequencies produce shorter wavelengths and finer detail.</dd>
+
+      <dt>Width (cm) — Transducer</dt>
+      <dd>Physical width of the transducer aperture (the array of emitting elements).</dd>
+
+      <dt>Focus (cm)</dt>
+      <dd>
+        Distance at which the beam is focused to a point. A value of 0 disables focusing, producing an
+        unfocused (planar) beam.
+      </dd>
+
+      <dt>Angle (deg)</dt>
+      <dd>Steering angle of the beam relative to straight ahead. Negative and positive values steer left/right.</dd>
+
+      <dt>Emitters (count)</dt>
+      <dd>Number of individual elements making up the transducer array.</dd>
+
+      <dt>Element Gap</dt>
+      <dd>
+        Size of the gap between elements, as a fraction of the element pitch, used to model spaced (non-continuous)
+        transducer arrays. "None" models a continuous transducer with no gaps.
+      </dd>
+
+      <dt>Beam profile / Distance (cm) — Display profile</dt>
+      <dd>
+        Enables the red highlight line and amplitude graph at a specific depth, from just past the transducer
+        up to the simulation depth.
+      </dd>
+    </dl>
+
+    <a class="back-link" href="/">← Back to simulation</a>
+  </body>
+</html>

@@ -20,6 +20,11 @@
   margin: 0 0 8px;
 }
 
+.instructions-link {
+  font-size: 13px;
+  margin: -8px 0 4px;
+}
+
 .beam-form label {
   display: flex;
   flex-direction: row;

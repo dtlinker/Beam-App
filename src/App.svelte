@@ -53,6 +53,11 @@
     if (showBeamProfile) profileDistance = form.depth / 2;
   }
 
+  // Focus allows 0 (disables focusing) or 0.2-15; 0.1 is not a valid step, so snap it to 0.
+  function snapFocus() {
+    if (Math.abs(form.focus - 0.1) < 1e-9) form.focus = 0;
+  }
+
   // Keep the distance within [0, depth] as the depth field changes.
   $effect(() => {
     if (profileDistance > form.depth) profileDistance = form.depth;
@@ -142,6 +147,7 @@
 <div class="beam-app">
   <aside class="beam-form">
     <h1>Beam Simulation</h1>
+    <a class="instructions-link" href="/instructions.html">Instructions</a>
 
     <fieldset class="form-group">
       <legend>Simulation</legend>
@@ -167,7 +173,7 @@
       </label>
       <label>
         Focus (cm)
-        <input type="number" min="0.2" max="15" step="0.1" bind:value={form.focus} />
+        <input type="number" min="0" max="15" step="0.1" bind:value={form.focus} oninput={snapFocus} />
       </label>
       <label>
         Angle (deg)
