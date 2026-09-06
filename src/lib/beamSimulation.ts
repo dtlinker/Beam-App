@@ -34,7 +34,7 @@ function computeTransducerGeometry(
   if (Array.isArray(emitters)) {
     const [count, gapPercent] = emitters;
     // one_element = 0:0.1:0.9 < emitters(2)
-    const oneElement: boolean[] = colonRange(0, 0.1, 0.9).map((v) => v < gapPercent);
+    const oneElement: boolean[] = colonRange(0, 0.1, 0.9).map((v) => v >= gapPercent);
     // tselect = repmat(one_element, 1, emitters(1))
     const tselect: boolean[] = [];
     for (let r = 0; r < count; r++) tselect.push(...oneElement);

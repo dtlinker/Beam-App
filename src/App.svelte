@@ -11,7 +11,10 @@
     angl: number;
     focus: number;
     emitters: number;
+    gapPercent: number;
   }
+
+  const gapPercentOptions = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9];
 
   let form = $state<FormState>({
     freq: 5,
@@ -21,6 +24,7 @@
     angl: 0,
     focus: 0,
     emitters: 50,
+    gapPercent: 0,
   });
 
   let status = $state('');
@@ -74,10 +78,10 @@
   };
 
   function runSimulation() {
-    const { freq, depth, wide, trans, angl, focus, emitters } = form;
+    const { freq, depth, wide, trans, angl, focus, emitters, gapPercent } = form;
 
     const valid =
-      [freq, depth, wide, trans, angl, focus, emitters].every((v) => !Number.isNaN(v)) &&
+      [freq, depth, wide, trans, angl, focus, emitters, gapPercent].every((v) => !Number.isNaN(v)) &&
       freq > 0 &&
       depth > 0 &&
       wide > 0 &&
@@ -99,7 +103,7 @@
       trans,
       angl,
       focus,
-      emitters: Math.round(emitters),
+      emitters: gapPercent === 0 ? Math.round(emitters) : [Math.round(emitters), gapPercent],
     };
     worker.postMessage(params);
   }
@@ -136,6 +140,14 @@
     <label>
       Emitters (count)
       <input type="number" min="1" step="1" bind:value={form.emitters} />
+    </label>
+    <label>
+      Element Gap
+      <select bind:value={form.gapPercent}>
+        {#each gapPercentOptions as option}
+          <option value={option}>{option === 0 ? 'None' : `${(option * 100).toFixed(0)}%`}</option>
+        {/each}
+      </select>
     </label>
 
     <button type="button" onclick={runSimulation} disabled={running}>
