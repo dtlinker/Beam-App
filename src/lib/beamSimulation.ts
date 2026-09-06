@@ -14,6 +14,51 @@ export interface BeamSimulationResult {
 export type ProgressCallback = (row: number, total: number) => void;
 
 /**
+ * Computes transducer element positions and their steering/focus delay
+ * adjustments. Depends only on transducer width, angle, focus and emitter
+ * layout, so it's computed once per simulation rather than per profile row.
+ *
+ * @param w width of the transducer (wavelengths)
+ * @param angl angle of the beam (radians)
+ * @param focus focus distance (0 disables focusing)
+ * @param emitters number of elements, or [elements, gapPercent] for spaced transducers
+ */
+function computeTransducerGeometry(
+  w: number,
+  angl: number,
+  focus: number,
+  emitters: EmitterSpec
+): { tpoints: number[]; sf: number[] } {
+  let tpoints: number[];
+
+  if (Array.isArray(emitters)) {
+    const [count, gapPercent] = emitters;
+    // one_element = 0:0.1:0.9 < emitters(2)
+    const oneElement: boolean[] = colonRange(0, 0.1, 0.9).map((v) => v < gapPercent);
+    // tselect = repmat(one_element, 1, emitters(1))
+    const tselect: boolean[] = [];
+    for (let r = 0; r < count; r++) tselect.push(...oneElement);
+    const full = colonRange(-w / 2, w / (count * 10), w / 2);
+    tpoints = [];
+    for (let i = 0; i < tselect.length && i < full.length; i++) {
+      if (tselect[i]) tpoints.push(full[i]);
+    }
+  } else {
+    tpoints = colonRange(-w / 2, w / emitters, w / 2);
+  }
+
+  // Steering adjustment
+  const sf = tpoints.map((t) => t * Math.sin(angl));
+  if (focus !== 0) {
+    for (let i = 0; i < sf.length; i++) {
+      sf[i] += Math.sqrt(tpoints[i] * tpoints[i] + focus * focus) - focus;
+    }
+  }
+
+  return { tpoints, sf };
+}
+
+/**
  * Port of beamsimulation.m — computes the beam power over the whole field
  * using beamProfile. Returns a matrix (rows = depth samples, cols = width samples).
  *
@@ -53,12 +98,14 @@ export function beamSimulation(
   const iVals = colonRange(depthW - step, -step, step);
   const total = 1 + iVals.length;
 
+  const { tpoints, sf } = computeTransducerGeometry(transW, anglRad, focusW, emitters);
+
   const rows: Float64Array[] = [];
-  rows.push(beamProfile(depthW, transW, wideW, m, anglRad, focusW, emitters));
+  rows.push(beamProfile(depthW, wideW, m, tpoints, sf));
   onProgress?.(1, total);
 
   for (let idx = 0; idx < iVals.length; idx++) {
-    rows.push(beamProfile(iVals[idx], transW, wideW, m, anglRad, focusW, emitters));
+    rows.push(beamProfile(iVals[idx], wideW, m, tpoints, sf));
     onProgress?.(idx + 2, total);
   }
 
