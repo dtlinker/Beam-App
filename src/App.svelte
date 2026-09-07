@@ -70,6 +70,12 @@
 
   const worker = new Worker(new URL('./lib/simulation.worker.ts', import.meta.url), { type: 'module' });
 
+  // Without this, a worker script that fails to load leaves running=true forever with no feedback.
+  worker.onerror = (e) => {
+    running = false;
+    status = `Error loading simulation worker: ${e.message || 'unknown error'}.`;
+  };
+
   worker.onmessage = (e: MessageEvent<WorkerMessage>) => {
     const msg = e.data;
 
