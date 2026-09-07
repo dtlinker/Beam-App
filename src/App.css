@@ -2,27 +2,57 @@
   display: flex;
   height: 100vh;
   width: 100%;
+  background: var(--bg);
 }
 
 .beam-form {
-  width: 300px;
+  width: 320px;
   flex-shrink: 0;
-  padding: 20px;
+  padding: 24px 22px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  border-right: 1px solid var(--border, #444);
+  gap: 16px;
+  background: var(--code-bg);
+  border-right: 1px solid var(--border);
   box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.beam-form-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
 }
 
 .beam-form h1 {
-  font-size: 20px;
-  margin: 0 0 8px;
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  margin: 0;
+  color: var(--text-h);
 }
 
 .instructions-link {
   font-size: 13px;
-  margin: -8px 0 4px;
+  font-weight: 500;
+  color: var(--accent);
+  text-decoration: none;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  white-space: nowrap;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.instructions-link:hover {
+  background: var(--accent-border);
+}
+
+.instructions-link:active {
+  transform: scale(0.97);
 }
 
 .beam-form label {
@@ -30,25 +60,30 @@
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  gap: 4px;
+  gap: 10px;
   font-size: 13px;
+  color: var(--text);
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  border: 1px solid var(--border, #666);
-  border-radius: 10px;
-  padding: 10px 12px 14px;
+  gap: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 14px 16px;
   margin: 0;
+  box-shadow: var(--shadow);
 }
 
 .form-group legend {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
   padding: 0 6px;
-  opacity: 0.8;
+  color: var(--accent);
 }
 
 .beam-form label.checkbox-label {
@@ -56,11 +91,14 @@
   align-items: center;
   justify-content: flex-start;
   gap: 8px;
+  font-weight: 500;
+  color: var(--text-h);
 }
 
 .beam-form label.checkbox-label input {
   flex: none;
   width: auto;
+  accent-color: var(--accent);
 }
 
 .beam-form input,
@@ -69,27 +107,52 @@
   flex: none;
   font-size: 14px;
   padding: 6px 8px;
-  border-radius: 4px;
-  border: 1px solid var(--border, #666);
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-h);
   box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.beam-form input:focus-visible,
+.beam-form select:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-bg);
 }
 
 .beam-form button {
-  margin-top: 12px;
+  margin-top: 4px;
   font-size: 15px;
-  padding: 10px;
-  border-radius: 6px;
+  font-weight: 600;
+  padding: 11px;
+  border-radius: 8px;
+  border: none;
   cursor: pointer;
+  color: #fff;
+  background: var(--accent);
+  box-shadow: var(--shadow);
+  transition: filter 0.15s ease, transform 0.1s ease;
+}
+
+.beam-form button:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.beam-form button:active:not(:disabled) {
+  transform: scale(0.98);
 }
 
 .beam-form button:disabled {
   cursor: not-allowed;
-  opacity: 0.6;
+  opacity: 0.55;
 }
 
 .status {
   font-size: 13px;
   min-height: 2.5em;
+  color: var(--text);
 }
 
 .beam-display {
@@ -97,7 +160,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 28px;
   box-sizing: border-box;
 }
 
@@ -106,13 +169,18 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
   min-height: 0;
 }
 
 .beam-canvas-wrap {
   flex: 1;
   min-height: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  background: #000;
 }
 
 .beam-canvas-wrap canvas {
@@ -122,4 +190,8 @@
 
 .placeholder {
   opacity: 0.6;
+  color: var(--text);
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  padding: 40px 60px;
 }

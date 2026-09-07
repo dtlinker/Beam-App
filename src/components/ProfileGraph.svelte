@@ -18,7 +18,7 @@
     if (!ctx) return;
 
     ctx.clearRect(0, 0, width, height);
-    ctx.strokeStyle = '#4ea1ff';
+    ctx.strokeStyle = getComputedStyle(canvas).getPropertyValue('--accent').trim() || '#4ea1ff';
     ctx.lineWidth = 1;
     ctx.beginPath();
     for (let x = 0; x < width; x++) {
@@ -36,9 +36,19 @@
 </div>
 
 <style>
+  .profile-graph {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 12px 14px;
+    box-sizing: border-box;
+  }
+
   .profile-graph h2 {
-    font-size: 13px;
+    font-size: 17px;
     font-weight: 600;
-    margin: 0 0 4px;
+    color: var(--text-h);
+    margin: 0 0 8px;
   }
 </style>

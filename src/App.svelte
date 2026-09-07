@@ -53,9 +53,14 @@
     if (showBeamProfile) profileDistance = form.depth / 2;
   }
 
-  // Focus allows 0 (disables focusing) or 0.2-15; 0.1 is not a valid step, so snap it to 0.
+  // Focus allows 0 (disables focusing) or 0.2-15; 0.1 is not a valid step, so snap it to
+  // whichever end the value is moving away from (0 when incrementing, 0.2 when decrementing).
+  let lastFocus = form.focus;
   function snapFocus() {
-    if (Math.abs(form.focus - 0.1) < 1e-9) form.focus = 0;
+    if (Math.abs(form.focus - 0.1) < 1e-9) {
+      form.focus = form.focus > lastFocus ? 0.2 : 0;
+    }
+    lastFocus = form.focus;
   }
 
   // Keep the distance within [0, depth] as the depth field changes.
@@ -146,8 +151,10 @@
 
 <div class="beam-app">
   <aside class="beam-form">
-    <h1>Beam Simulation</h1>
-    <a class="instructions-link" href="/instructions.html">Instructions</a>
+    <div class="beam-form-header">
+      <h1>Beam Simulation</h1>
+      <a class="instructions-link" href="/instructions.html">Instructions</a>
+    </div>
 
     <fieldset class="form-group">
       <legend>Simulation</legend>
