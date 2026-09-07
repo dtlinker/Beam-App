@@ -134,11 +134,16 @@
         waves emitted from individual elements combine constructively and destructively as they travel through
         the field, producing a pattern of peaks and nulls in intensity. The simulation computes this interference
         pattern across a two-dimensional field (depth vs. lateral width) and displays it as a grayscale image,
-        where brighter pixels indicate higher beam power.
+        where brighter pixels indicate higher beam amplitude.
+
+       
       </p>
       <p>
         Optionally, the transducer elements can be steered (angled), focused to a point, or spaced apart with
         gaps to model more realistic array configurations.
+      </p>
+      <p>
+         Created by David T. Linker September 2026 based on prior Matlab code. (dtlinker@uw.edu)
       </p>
     </section>
 
@@ -183,12 +188,12 @@
         <dd>Steering angle of the beam relative to straight ahead. Negative and positive values steer left/right.</dd>
 
         <dt>Emitters (count)</dt>
-        <dd>Number of individual elements making up the transducer array.</dd>
+        <dd>Number of individual elements making up the transducer array. If the Element Gap popup is set to None, the emitters are point sources. If the Element Gap is set to other values, the emitters determines of the transducer elements modelled.</dd>
 
         <dt>Element Gap</dt>
         <dd>
           Size of the gap between elements, as a fraction of the element pitch, used to model spaced (non-continuous)
-          transducer arrays. "None" models a continuous transducer with no gaps.
+          transducer arrays. "None" models point sources. Other values model elements by ten point sources, with some inactivated to model the gap.
         </dd>
 
         <dt>Beam profile / Distance (cm) — Display profile</dt>

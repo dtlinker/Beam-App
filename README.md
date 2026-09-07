@@ -1,10 +1,12 @@
 # Beam Simulation Web App
 
-A browser-based port of the original MATLAB `beamApp.m` ultrasound beam
-simulator. It computes the transmit intensity field of a linear-array
+This is a browser-based port of the original MATLAB `beamApp.m` ultrasound beam
+simulator. It computes the transmit amplitude field of a linear phased array
 transducer (frequency, depth/width of field, transducer size, steering
 angle, focus, and element count) and renders it as a grayscale image,
 matching the original app's `imshow`-based display.
+
+The original Matlab and this port were developed by David T. Linker (dtlinker@uw.edu)
 
 ## What it does
 
@@ -16,7 +18,7 @@ matching the original app's `imshow`-based display.
 - Runs the simulation in a Web Worker
   ([src/lib/simulation.worker.ts](src/lib/simulation.worker.ts)) so the UI
   stays responsive, and streams back progress/status updates while it runs.
-- Renders the normalized intensity matrix to a `<canvas>` as a grayscale
+- Renders the normalized amplitude matrix to a `<canvas>` as a grayscale
   image ([src/components/BeamCanvas.svelte](src/components/BeamCanvas.svelte)),
   equivalent to MATLAB's `imshow(I)` with `I` scaled so `max(I(:)) == 1`.
 
