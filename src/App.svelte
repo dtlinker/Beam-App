@@ -20,8 +20,8 @@
   let form = $state<FormState>({
     freq: 5,
     depth: 10,
-    wide: 6,
-    trans: 3,
+    wide: 3,
+    trans: 1,
     angl: 0,
     focus: 0,
     emitters: 50,
@@ -159,7 +159,7 @@
   <aside class="beam-form">
     <div class="beam-form-header">
       <h1>Beam Simulation</h1>
-      <a class="instructions-link" href="/instructions.html">Instructions</a>
+      <a class="instructions-link" href="./instructions.html">Instructions</a>
     </div>
 
     <fieldset class="form-group">
@@ -230,8 +230,10 @@
   <main class="beam-display">
     {#if image}
       <div class="beam-display-stack">
-        <div class="beam-canvas-wrap">
-          <BeamCanvas data={image.data} width={image.width} height={image.height} highlightRow={profileRow} />
+        <div class="beam-canvas-area">
+          <div class="beam-canvas-wrap" style="aspect-ratio: {image.width} / {image.height};">
+            <BeamCanvas data={image.data} width={image.width} height={image.height} highlightRow={profileRow} />
+          </div>
         </div>
         {#if showBeamProfile && profileValues}
           <ProfileGraph values={profileValues} />
