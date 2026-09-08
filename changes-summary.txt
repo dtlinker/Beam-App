@@ -1,0 +1,9 @@
+Files ./.DS_Store and ../beam-webapp Broken/.DS_Store differ
+Only in ./.git: ORIG_HEAD
+Files ./.git/index and ../beam-webapp Broken/.git/index differ
+Files ./.git/logs/HEAD and ../beam-webapp Broken/.git/logs/HEAD differ
+Only in .: changes-summary.txt
+Files ./node_modules/.vite/deps/_metadata.json and ../beam-webapp Broken/node_modules/.vite/deps/_metadata.json differ
+Files ./node_modules/.vite/deps_ssr/_metadata.json and ../beam-webapp Broken/node_modules/.vite/deps_ssr/_metadata.json differ
+Files ./src/App.css and ../beam-webapp Broken/src/App.css differ
+Files ./src/App.svelte and ../beam-webapp Broken/src/App.svelte differ

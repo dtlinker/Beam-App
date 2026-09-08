@@ -2,6 +2,7 @@
   import './App.css';
   import BeamCanvas from './components/BeamCanvas.svelte';
   import ProfileGraph from './components/ProfileGraph.svelte';
+  import NumberStepper from './components/NumberStepper.svelte';
   import type { SimulationParams, WorkerMessage } from './lib/simulation.worker';
 
   interface FormState {
@@ -166,11 +167,11 @@
       <legend>Simulation</legend>
       <label>
         Depth (cm)
-        <input type="number" min="1" max="25" step="1" bind:value={form.depth} />
+        <NumberStepper bind:value={form.depth} min={1} max={25} step={1} decimals={0} ariaLabel="Depth (cm)" />
       </label>
       <label>
         Width (cm)
-        <input type="number" min="2" max="16" step="0.5" bind:value={form.wide} />
+        <NumberStepper bind:value={form.wide} min={2} max={16} step={0.5} decimals={1} ariaLabel="Simulation width (cm)" />
       </label>
     </fieldset>
 
@@ -178,11 +179,11 @@
       <legend>Transducer</legend>
       <label>
         Frequency (MHz)
-        <input type="number" min="1" max="10" step="0.5" bind:value={form.freq} />
+        <NumberStepper bind:value={form.freq} min={1} max={10} step={0.5} decimals={1} ariaLabel="Frequency (MHz)" />
       </label>
       <label>
         Width (cm)
-        <input type="number" min="0.2" max="5" step="0.1" bind:value={form.trans} />
+        <NumberStepper bind:value={form.trans} min={0.2} max={5} step={0.1} decimals={1} ariaLabel="Transducer width (cm)" />
       </label>
       <label>
         Focus (cm)
@@ -190,11 +191,11 @@
       </label>
       <label>
         Angle (deg)
-        <input type="number" min="-45" max="45" step="1" bind:value={form.angl} />
+        <NumberStepper bind:value={form.angl} min={-45} max={45} step={1} decimals={0} ariaLabel="Angle (deg)" />
       </label>
       <label>
         Emitters (count)
-        <input type="number" min="32" max="256" step="1" bind:value={form.emitters} />
+        <NumberStepper bind:value={form.emitters} min={32} max={256} step={1} decimals={0} ariaLabel="Emitters (count)" />
       </label>
       <label>
         Element Gap
