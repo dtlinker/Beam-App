@@ -6,7 +6,7 @@
 }
 
 .beam-form {
-  width: 320px;
+  width: 340px;
   flex-shrink: 0;
   padding: 24px 22px;
   display: flex;
@@ -103,7 +103,7 @@
 
 .beam-form input,
 .beam-form select {
-  width: 33%;
+  width: 35%;
   flex: none;
   font-size: 14px;
   padding: 6px 8px;

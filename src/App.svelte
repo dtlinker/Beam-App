@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onDestroy } from 'svelte';
   import './App.css';
   import BeamCanvas from './components/BeamCanvas.svelte';
   import ProfileGraph from './components/ProfileGraph.svelte';
@@ -24,7 +25,7 @@
     wide: 3,
     trans: 1,
     angl: 0,
-    focus: 0,
+    focus: 5,
     emitters: 50,
     gapPercent: 0,
   });
@@ -54,15 +55,104 @@
     if (showBeamProfile) profileDistance = form.depth / 2;
   }
 
-  // Focus allows 0 (disables focusing) or 0.2-15; 0.1 is not a valid step, so snap it to
-  // whichever end the value is moving away from (0 when incrementing, 0.2 when decrementing).
-  let lastFocus = form.focus;
-  function snapFocus() {
-    if (Math.abs(form.focus - 0.1) < 1e-9) {
-      form.focus = form.focus > lastFocus ? 0.2 : 0;
+  // A focus of 0 is the application's sentinel for "no finite focus."
+
+    // A focus of 0 is the application's sentinel for "no finite focus."
+  // Present that state explicitly to users as infinity.
+  let focusDisplay = $derived(form.focus === 0 ? '∞' : form.focus.toFixed(1));
+
+  function parseFocusInput(raw: string) {
+    const text = raw.trim().toLowerCase();
+
+    if (text === '∞' || text === 'inf' || text === 'infinity') {
+      form.focus = 0;
+      return;
     }
-    lastFocus = form.focus;
+
+    const n = Number(text);
+
+    // Keep the current value if the entry is not a valid number.
+    if (!Number.isFinite(n)) return;
+
+    // Preserve the existing internal convention: 0 means infinity/no finite focus.
+    if (n === 0) {
+      form.focus = 0;
+      return;
+    }
+
+    // Finite focus distances are restricted to 0.2–15.0 cm.
+    form.focus = Math.round(Math.min(15, Math.max(0.2, n)) * 10) / 10;
   }
+
+  function stepFocus(dir: 1 | -1) {
+    // ∞ decreases into the finite range at 15.0.
+    if (form.focus === 0) {
+      if (dir === -1) form.focus = 15;
+      return;
+    }
+
+    const next = Math.round((form.focus + dir * 0.1) * 10) / 10;
+
+    // 15.0 increasing enters the ∞ / no-finite-focus state.
+    if (next > 15) {
+      form.focus = 0;
+      return;
+    }
+
+    // Do not wrap below the smallest finite focus distance.
+    form.focus = Math.max(0.2, next);
+  }
+
+  let focusRepeatDelay: ReturnType<typeof setTimeout> | undefined;
+  let focusRepeatInterval: ReturnType<typeof setInterval> | undefined;
+
+  const FOCUS_REPEAT_DELAY_MS = 400;
+  const FOCUS_REPEAT_INTERVAL_MS = 80;
+
+  function stopFocusRepeat() {
+    if (focusRepeatDelay !== undefined) {
+      clearTimeout(focusRepeatDelay);
+      focusRepeatDelay = undefined;
+    }
+
+    if (focusRepeatInterval !== undefined) {
+      clearInterval(focusRepeatInterval);
+      focusRepeatInterval = undefined;
+    }
+  }
+
+  function canStepFocus(dir: 1 | -1) {
+    if (form.focus === 0) return dir === -1;
+
+    return dir === 1
+      ? form.focus < 15
+      : form.focus > 0.2;
+  }
+
+  function startFocusRepeat(dir: 1 | -1) {
+    stopFocusRepeat();
+
+    // Make an ordinary short press change the value once.
+    stepFocus(dir);
+
+    // Do not start the repeat timer if the first step reached an endpoint.
+    if (!canStepFocus(dir)) return;
+
+    focusRepeatDelay = setTimeout(() => {
+      focusRepeatDelay = undefined;
+
+      focusRepeatInterval = setInterval(() => {
+        stepFocus(dir);
+
+        if (!canStepFocus(dir)) {
+          stopFocusRepeat();
+        }
+      }, FOCUS_REPEAT_INTERVAL_MS);
+    }, FOCUS_REPEAT_DELAY_MS);
+  }
+
+  // Register this once, while App.svelte is initialized—not inside a button handler.
+  onDestroy(stopFocusRepeat);
 
   // Keep the distance within [0, depth] as the depth field changes.
   $effect(() => {
@@ -185,10 +275,7 @@
         Width (cm)
         <NumberStepper bind:value={form.trans} min={0.2} max={5} step={0.1} decimals={1} ariaLabel="Transducer width (cm)" />
       </label>
-      <label>
-        Focus (cm)
-        <input type="number" min="0" max="15" step="0.1" bind:value={form.focus} oninput={snapFocus} />
-      </label>
+
       <label>
         Angle (deg)
         <NumberStepper bind:value={form.angl} min={-45} max={45} step={1} decimals={0} ariaLabel="Angle (deg)" />
@@ -197,6 +284,55 @@
         Emitters (count)
         <NumberStepper bind:value={form.emitters} min={32} max={256} step={1} decimals={0} ariaLabel="Emitters (count)" />
       </label>
+      <label class="stepper-field">
+  Focus (cm)
+  <div class="stepper">
+    <input
+      type="text"
+      inputmode="decimal"
+      class="stepper-input"
+      aria-label="Focus (cm); infinity means no finite focus"
+      value={focusDisplay}
+      onchange={(e) => parseFocusInput(e.currentTarget.value)}
+      onkeydown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
+    />
+
+    <div class="stepper-buttons">
+     <button
+  type="button"
+  class="stepper-btn"
+  aria-label="Increase focus"
+  onpointerdown={(event) => {
+    event.currentTarget.setPointerCapture(event.pointerId);
+    startFocusRepeat(1);
+  }}
+  onpointerup={stopFocusRepeat}
+  onpointercancel={stopFocusRepeat}
+  onlostpointercapture={stopFocusRepeat}
+>
+  ▲
+</button>
+
+<button
+  type="button"
+  class="stepper-btn"
+  aria-label="Decrease focus"
+  onpointerdown={(event) => {
+    event.currentTarget.setPointerCapture(event.pointerId);
+    startFocusRepeat(-1);
+  }}
+  onpointerup={stopFocusRepeat}
+  onpointercancel={stopFocusRepeat}
+  onlostpointercapture={stopFocusRepeat}
+>
+  ▼
+</button>
+
+    </div>
+  </div>
+</label>
+
+
       <label>
         Element Gap
         <select bind:value={form.gapPercent}>
