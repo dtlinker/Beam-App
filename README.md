@@ -8,6 +8,8 @@ matching the original app's `imshow`-based display.
 
 The original Matlab and this port were developed by David T. Linker (dtlinker@uw.edu)
 
+![image](./screenshot.jpg)
+
 ## What it does
 
 - Ports `beamprofile.m` and `beamsimulation.m` line-for-line into
